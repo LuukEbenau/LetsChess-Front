@@ -1,0 +1,15 @@
+export const TILE_TYPE = {
+	BLACK_TILE: 1,
+	WHITE_TILE: 2,
+	
+	PAWN: 4,
+	ROOK: 8,
+	BISHOP: 16,
+	CASTLE: 32,
+	KING: 64,
+	QUEEN: 128,
+
+	PLAYER_WHITE: 256,
+	PLAYER_BLACK: 512
+}
+export default TILE_TYPE
