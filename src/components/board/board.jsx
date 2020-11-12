@@ -4,13 +4,15 @@ import styles from './board.module.scss'
 import KeyboardEventHandler from 'react-keyboard-event-handler';
 import {Row, Container} from 'react-bootstrap'
 import TILE_TYPE from '../../game/tileType';
-import ChessGame from '../../game/chessgame';
+import ChessGame, { coordToChessName } from '../../game';
 
 // import { SnakeGame } from '../../game/game';
 
 class Board extends Component {
 	constructor(props) {
 		super(props)
+		this.game = new ChessGame()
+
 		this.state = { 
 			tiles: [],
 			boardWidth: 600,
@@ -18,6 +20,7 @@ class Board extends Component {
 			rows: this.props.rows,
 			cols: this.props.cols,
 		}
+
 		this.tileSize = this.state.boardWidth / this.props.cols
 
 		// this.game.onGameStarted.subscribe(() => console.log('game started'))
@@ -25,17 +28,16 @@ class Board extends Component {
 		// 	this.setState({gameStarted:false})
 		// 	console.log('game ended',e)
 		// })
-		// this.game.onBoardUpdated.subscribe(e => this.onGameTick(e))
+		this.game.onBoardUpdated.subscribe(e => this.onGameTick(e))
 	}
 
 	componentDidMount(){	
-		this.game = new ChessGame()
 		this._generateVisualBoard()
 	}
 
-	// onGameTick({updatedTiles}){
-	// 	this.updateBoard(updatedTiles)
-	// }
+	onGameTick({updatedTiles}){
+		this.updateBoard(updatedTiles)
+	}
 
 	onKeyboardEvent(visualBoard, key){
 	 if(key === 'space'){
@@ -68,34 +70,34 @@ class Board extends Component {
 	updateBoard(tilesToUpdate){
 		let tiles = this.state.tiles
 		for(let tile of tilesToUpdate){
-			let x = tile[1]
-			let y = tile[0]
-
+			let x = tile[0]
+			let y = tile[1]
+			
 			let row = [].concat(tiles[y])
-
-			row[x] = <Tile key={x+'-'+y} height={this.tileSize} width={this.tileSize} ></Tile>
+			
+			row[x] = this._generateTile(x,y,this.game.board[y][x])
 			tiles[y] = row
 		}
 
 		this.setState({tiles:tiles})
 	}
 
-	onMoveAttempt(e){
-		console.log('moveattempt',e)
+	onMoveAttempt(self,e){
+		self.game.move({from:e.from,to:e.to})
 	}
 
-
-
 	//#region private methods
-
+	_generateTile(x,y,content){
+		let location = coordToChessName(x,y)
+		return <Tile key={x+'-'+y} height={this.tileSize} width={this.tileSize} content={content} location={location} onMove={(e)=>this.onMoveAttempt(this,e)}></Tile>
+	}
 	_generateVisualBoard(){
 		let visualBoard = []
 		for(let y = 0; y < this.game.board.length; y++){
 			let row = this.game.board[y]
 			let visualRow = []
 			for(let x = 0; x < row.length; x++){
-				let location = ['a','b','c','d','e','f','g','h'][x]+(this.game.settings.size-y)
-				let tile = <Tile key={x+'-'+y} height={this.tileSize} width={this.tileSize} content={row[x]} location={location} onMove={this.onMoveAttempt}></Tile>
+				let tile = this._generateTile(x,y,row[x])
 
 				visualRow.push(tile)
 			}

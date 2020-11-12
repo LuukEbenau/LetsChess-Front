@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import styles from './tile.module.scss'
 import TILE_TYPE from '../../game/tileType'
+import { coordToChessName } from '../../game'
 export default class Tile extends Component {
 	render() {
 		let tileClass = []
@@ -28,17 +29,18 @@ export default class Tile extends Component {
 		let drop = (e) => {
 			e.preventDefault()
 			var data = e.dataTransfer.getData("piece")
-			let moveAttempt = {start:data, end:this.props.location}
+			let moveAttempt = {from:data, to:this.props.location}
 
 			if(this.props.onMove) this.props.onMove(moveAttempt)
 		}
+
 		return (
 			<div style={{width:this.props.width, height:this.props.height}} className={styles.tile}> 
 					{/* <div className={styles.verticalCenter}>
-						<p style={{"z-index":'2'}}>{this.props.location}</p>
+						<p >{this.props.location}</p>
 					</div> */}
 					<div style={{width:"100%", height:"100%"}} onDrop={drop} onDragOver={allowDrop} className={[tileClass].join(' ')}>
-						<div draggable="true" onDragStart={dragstart} className={contentClass.join(' ')}></div>
+						<div draggable={(c&TILE_TYPE.PIECE_PLAYER) > 0} onDragStart={dragstart} className={contentClass.join(' ')}></div>
 					</div>
 			</div>
 		)
