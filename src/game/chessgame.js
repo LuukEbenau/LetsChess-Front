@@ -9,6 +9,7 @@ export class ChessGame{
 		size:8,
 		whiteBottom:false
 	}
+	enPassantPawn
 	/** List of all pieces of the dark player */
 	darkPieces = []
 	/** List of all pieces of the light player */
@@ -79,9 +80,14 @@ export class ChessGame{
 					this.board[attackedPiece[1]][attackedPiece[0]] &= ~TILE_TYPE.PIECE_PLAYER
 					updatedTiles.push(attackedPiece)
 				}
-				else{
+				else if(specialData === TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE){
+					this.enPassantPawn = toCoord
+					this.board[toCoord[1]][toCoord[0]] |= fromPiece|TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE
+				}
+				else if(specialData === TILE_TYPE.PROMOTE){
 					/** e.g. queen promote */
-					fromPiece += specialData
+					fromPiece &= ~TILE_TYPE.PAWN
+					fromPiece |= TILE_TYPE.QUEEN
 					this.board[toCoord[1]][toCoord[0]] |= fromPiece
 				}
 			}
@@ -474,7 +480,11 @@ export class ChessGame{
 
 		/** 1. check if tile in front is free */
 		if((board[location[1] + direction][location[0]] & TILE_TYPE.PIECES) === 0){
-			yield [location[0], location[1] + direction]
+			let coord = [location[0], location[1] + direction]
+			if(coord[1] === 0 || coord[1] === 7){
+				coord.push(TILE_TYPE.PROMOTE)
+			}
+			yield coord
 
 			/** 1.1. now that we know you can walk 1 step, check if at basestation, and if, doublestep is possible to */
 			if((playingBottomSide && 8-location[1] === 2) || (!playingBottomSide && location[1] === 1)){
@@ -485,8 +495,7 @@ export class ChessGame{
 			}		
 		}
 
-		/** TODO: check is a en passant is possible, difficulty is that the removed piece is not the same as the attacked one */
-		
+		/** TODO: en passant code */
 		if((playingBottomSide && 8-location[1] === 5) || (!playingBottomSide && location[1] === 4)){
 			if((board[location[1]][location[0]+1] & TILE_TYPE.PAWN) > 0){
 				if((board[location[1]][location[0]+1] & TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE) > 0){
@@ -501,7 +510,6 @@ export class ChessGame{
 			}
 		}	
 
-
 		/**now check for possible attack moves */
 		let enemyPlayer = playerWhite? TILE_TYPE.PLAYER_BLACK : TILE_TYPE.PLAYER_WHITE
 		/** left attack */
@@ -511,7 +519,7 @@ export class ChessGame{
 
 				/** Promote to queen */
 				if(coord[1] === 0 || coord[1] === 7){
-					coord.push(TILE_TYPE.QUEEN-TILE_TYPE.PAWN)
+					coord.push(TILE_TYPE.PROMOTE)
 				}
 
 				yield coord
@@ -525,7 +533,7 @@ export class ChessGame{
 
 				/** Promote to queen */
 				if(coord[1] === 0 || coord[1] === 7){
-					coord.push(TILE_TYPE.QUEEN-TILE_TYPE.PAWN)
+					coord.push(TILE_TYPE.PROMOTE)
 				}
 
 				yield coord
