@@ -6,8 +6,8 @@ export default class Tile extends Component {
 	render() {
 		let tileClass = []
 		let c = this.props.content
-		if((c & TILE_TYPE.BLACK_TILE) > 0) tileClass = styles.blackTile
-		else if((c & TILE_TYPE.WHITE_TILE) > 0) tileClass = styles.whiteTile
+		if((c & TILE_TYPE.BLACK_TILE) > 0) tileClass.push(styles.blackTile)
+		else if((c & TILE_TYPE.WHITE_TILE) > 0) tileClass.push(styles.whiteTile)
 
 		let contentClass = [styles.content]
 		if((c & TILE_TYPE.PLAYER_WHITE) > 0) contentClass.push(styles.whitePlayer)
@@ -20,9 +20,19 @@ export default class Tile extends Component {
 		else if((c & TILE_TYPE.KING) > 0) contentClass.push(styles.king)
 		else if((c & TILE_TYPE.QUEEN) > 0) contentClass.push(styles.queen)
 
-		let dragstart = (e)=>{
-			e.dataTransfer.setData("piece", this.props.location);
+		if((c & TILE_TYPE.HIGHLIGHT) > 0) {
+			tileClass.push(styles.highlight)
 		}
+
+		let dragstart = (e)=>{
+			e.dataTransfer.setData("piece", this.props.location)
+			if(this.props.onRequestHighlight) this.props.onRequestHighlight({location: this.props.location, piece:c})
+		}
+		let dragend = ()=>{
+			if(this.props.onStopHighlight) this.props.onStopHighlight()
+		}
+
+
 		let allowDrop = (e) => {
 			e.preventDefault()
 		}
@@ -39,8 +49,8 @@ export default class Tile extends Component {
 					{/* <div className={styles.verticalCenter}>
 						<p >{this.props.location}</p>
 					</div> */}
-					<div style={{width:"100%", height:"100%"}} onDrop={drop} onDragOver={allowDrop} className={[tileClass].join(' ')}>
-						<div draggable={(c&TILE_TYPE.PIECE_PLAYER) > 0} onDragStart={dragstart} className={contentClass.join(' ')}></div>
+					<div style={{width:"100%", height:"100%"}} onDrop={drop} onDragOver={allowDrop} className={tileClass.join(' ')}>
+						<div draggable={(c&TILE_TYPE.PIECE_PLAYER) > 0} onDragStart={dragstart} onDragEnd={dragend} className={contentClass.join(' ')}></div>
 					</div>
 			</div>
 		)

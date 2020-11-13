@@ -28,32 +28,72 @@ export class ChessGame{
 
 		let fromPiece = this.board[fromCoord[1]][fromCoord[0]] & TILE_TYPE.PIECE_PLAYER
 
-		let possibleMoves = this._getPossibleMoves({piece:fromPiece, location:fromCoord})
+		let possibleMoves = this.getPossibleMoves({board:this.board, piece:fromPiece, location:fromCoord})
 
-		if(possibleMoves.filter(m=>m[0] == toCoord[0] && m[1] == toCoord[1]).length === 0){
+		/** check if the intended move is possible */
+		let movesFromPossible = possibleMoves.filter(m=>m[0] === toCoord[0] && m[1] === toCoord[1])
+
+		if(movesFromPossible.length === 0){
 			console.debug(`This move from ${from} to ${to} is not possible!`)
 		}
 		else{
+			let updatedTiles = []
+			let enemyPiece = this.board[toCoord[1]][toCoord[0]] & TILE_TYPE.PIECE_PLAYER
 			/** remove piece piece from tile */
 			this.board[fromCoord[1]][fromCoord[0]] &= ~TILE_TYPE.PIECE_PLAYER
-
+			
 			this.board[toCoord[1]][toCoord[0]] &= ~TILE_TYPE.PIECE_PLAYER
-			this.board[toCoord[1]][toCoord[0]] |= fromPiece
-			this.onBoardUpdated.trigger({updatedTiles:[fromCoord,toCoord]})
+
+			/** At the third index potential special state can be stored, like queen promote or en passant, so add this to the piece */
+			fromPiece &= ~TILE_TYPE.HAS_NOT_MOVED
+			if(movesFromPossible[0].length>2){
+				//TODO: remove en passant after turn is over
+				let specialData = movesFromPossible[0][2]
+				if(specialData === TILE_TYPE.ROCKADE){
+					console.log('lets do rockade!')
+
+					let kingX, castleX
+					if(toCoord[0]>fromCoord){ //right
+						castleX = fromCoord[0]+1
+						kingX= fromCoord[0]+2
+					}
+					else{
+						//left
+						castleX = fromCoord[0]-1
+						kingX= fromCoord[0]-2
+					}
+					
+					this.board[toCoord[1]][castleX] |= enemyPiece &~ TILE_TYPE.HAS_NOT_MOVED
+					this.board[toCoord[1]][kingX] |= fromPiece
+					updatedTiles.push([castleX,toCoord[1]])
+					updatedTiles.push([kingX,toCoord[1]])
+					
+					//remove the castle from previous position
+					this.board[toCoord[1]][toCoord[0]] &= ~TILE_TYPE.PIECE_PLAYER
+				}
+				else if(specialData === TILE_TYPE.EN_PASSANT){
+					this.board[toCoord[1]][toCoord[0]] |= fromPiece
+
+					let attackedPiece = movesFromPossible[0][3]
+
+					this.board[attackedPiece[1]][attackedPiece[0]] &= ~TILE_TYPE.PIECE_PLAYER
+					updatedTiles.push(attackedPiece)
+				}
+				else{
+					/** e.g. queen promote */
+					fromPiece += specialData
+					this.board[toCoord[1]][toCoord[0]] |= fromPiece
+				}
+			}
+			else{
+				this.board[toCoord[1]][toCoord[0]] |= fromPiece
+			}
+
+			updatedTiles.push(fromCoord,toCoord)
+			this.onBoardUpdated.trigger({updatedTiles})
 		}
 
 		this.onMoveTaken.trigger({from:from, to:to})
-	}
-
-	_calculateAllPossibleMovesForPlayer(player = TILE_TYPE.PLAYER_WHITE){
-		let pieces = (player & TILE_TYPE.PLAYER_WHITE) > 0 ? this.lightPieces : this.darkPieces
-		let moves = []
-		for(let piece of pieces){
-			let tileContent = this.board[piece[1]][piece[0]]
-			moves.push(...this._getPossibleMoves({piece:tileContent, location:piece}))
-		}
-
-		return moves
 	}
 
 	//#region private methods
@@ -65,18 +105,18 @@ export class ChessGame{
 
 		this.lightPieces = []
 		this.darkPieces = []
-		for(let y = 0; y < this.settings.size; y++){
+		for(let y = 0; y < 8; y++){
 			let row = []
-			for(let x = 0; x < this.settings.size; x++){		
+			for(let x = 0; x < 8; x++){		
 				let tileContent = 0
 			  tileContent |= (((y%2) + (x%2)) === 1? TILE_TYPE.BLACK_TILE: TILE_TYPE.WHITE_TILE)
 
 			  if(y === 0){
-					if(x === 0 || x === this.settings.size-1) tileContent |= TILE_TYPE.CASTLE
-					if(x === 1 || x === this.settings.size-2) tileContent |= TILE_TYPE.ROOK
-					if(x === 2 || x === this.settings.size-3) tileContent |= TILE_TYPE.BISHOP
+					if(x === 0 || x === 8-1) tileContent |= TILE_TYPE.CASTLE|TILE_TYPE.HAS_NOT_MOVED
+					if(x === 1 || x === 8-2) tileContent |= TILE_TYPE.ROOK
+					if(x === 2 || x === 8-3) tileContent |= TILE_TYPE.BISHOP
 					if(x === 3) tileContent |= TILE_TYPE.QUEEN
-					if(x === 4) tileContent |= TILE_TYPE.KING
+					if(x === 4) tileContent |= TILE_TYPE.KING|TILE_TYPE.HAS_NOT_MOVED
 					
 					tileContent |= topPlayer
 
@@ -90,12 +130,12 @@ export class ChessGame{
 						this.lightPieces.push([x,y])
 					}
 				}
-				else if(y === this.settings.size-1){
-					if(x === 0 || x === this.settings.size-1) tileContent |= TILE_TYPE.CASTLE
-					if(x === 1 || x === this.settings.size-2) tileContent |= TILE_TYPE.ROOK
-					if(x === 2 || x === this.settings.size-3) tileContent |= TILE_TYPE.BISHOP
+				else if(y === 8-1){
+					if(x === 0 || x === 8-1) tileContent |= TILE_TYPE.CASTLE|TILE_TYPE.HAS_NOT_MOVED
+					if(x === 1 || x === 8-2) tileContent |= TILE_TYPE.ROOK
+					if(x === 2 || x === 8-3) tileContent |= TILE_TYPE.BISHOP
 					if(x === 3) tileContent |= TILE_TYPE.QUEEN
-					if(x === 4) tileContent |= TILE_TYPE.KING
+					if(x === 4) tileContent |= TILE_TYPE.KING|TILE_TYPE.HAS_NOT_MOVED
 
 					tileContent |= (bottomPlayer)
 
@@ -103,7 +143,7 @@ export class ChessGame{
 						this.darkPieces.push([x,y])
 					}
 				}
-				else if(y === this.settings.size-2){
+				else if(y === 8-2){
 					tileContent |= (TILE_TYPE.PAWN|bottomPlayer)
 
 					if((topPlayer & TILE_TYPE.PLAYER_WHITE) > 0){
@@ -124,26 +164,26 @@ export class ChessGame{
 	}
 
 	//#region calculatePossibleMoves
-	_getPossibleMoves({piece, location}){
+	getPossibleMoves({board, piece, location}){
 		let moves = []
 		if((piece & TILE_TYPE.PAWN) > 0){
-			moves.push(...this._getPossiblePawnMoves({board: this.board, piece, location}))
+			moves.push(...this._getPossiblePawnMoves({board, piece, location}))
 		}
 		else if((piece & TILE_TYPE.ROOK)){
-			moves.push(...this._getPossibleRookMoves({board: this.board, piece,location}))
+			moves.push(...this._getPossibleRookMoves({board, piece,location}))
 		}
 		else if((piece & TILE_TYPE.CASTLE)){
-			moves.push(...this._getPossibleCastleMoves({board: this.board, piece,location}))
+			moves.push(...this._getPossibleCastleMoves({board, piece,location}))
 		}
 		else if((piece & TILE_TYPE.BISHOP)){
-			moves.push(...this._getPossibleBishopMoves({board: this.board, piece,location}))
+			moves.push(...this._getPossibleBishopMoves({board, piece,location}))
 		}
 		else if((piece & TILE_TYPE.QUEEN)){
-			moves.push(...this._getPossibleQueenMoves({board: this.board, piece,location}))
+			moves.push(...this._getPossibleQueenMoves({board, piece,location}))
 		}
 		else if((piece & TILE_TYPE.KING)){
 			// let enemyMoves = this._calculateAllPossibleMovesForPlayer(TILE_TYPE.PLAYERS & ~piece)
-			 moves.push(...this._getPossibleKingMoves({board: this.board, piece, location}))
+			 moves.push(...this._getPossibleKingMoves({board, piece, location}))
 
 			// moves = moves.filter(m => !enemyMoves.includes(m))
 		}
@@ -171,6 +211,35 @@ export class ChessGame{
 				}
 			}
 		}
+		if((piece&TILE_TYPE.HAS_NOT_MOVED)>0){
+			/** Check rochade */
+			let dirs = [1,-1]
+			for(let dir of dirs){
+				let tileInBetween = location
+				do{
+					tileInBetween = [tileInBetween[0]+dir,tileInBetween[1]]
+					console.debug('tileinBetween',tileInBetween[0])
+					if(tileInBetween[0]===0 || tileInBetween[0] === 7){
+						if((board[tileInBetween[1]][tileInBetween[0]] & TILE_TYPE.CASTLE)>0){
+							if((board[tileInBetween[1]][tileInBetween[0]] & TILE_TYPE.HAS_NOT_MOVED)>0){
+								
+								tileInBetween.push(TILE_TYPE.ROCKADE)
+								console.log('add rockade',tileInBetween)
+								yield tileInBetween
+							}
+						}
+						break
+					}
+					/** verify space between is empty */
+					if((board[tileInBetween[1]][tileInBetween[0]] & TILE_TYPE.PIECE_PLAYER)>0){
+						break
+					}
+				}while(this._coordInsideBoard(tileInBetween))
+
+				
+			}
+		}
+
 	}
 
 	_verifyKingIsSafeOnNewLocation({board, piece, oldLocation, newLocation}){
@@ -276,7 +345,7 @@ export class ChessGame{
 			}
 		}
 		/** Right attack */
-		if(location[0] < this.settings.size){
+		if(location[0] < 8){
 			if((board[location[1]+direction][location[0]+1] & enemyPlayer) > 0){
 				if((board[location[1]+direction][location[0]+1] & TILE_TYPE.PAWN) > 0)
 					return false
@@ -411,22 +480,55 @@ export class ChessGame{
 			if((playingBottomSide && 8-location[1] === 2) || (!playingBottomSide && location[1] === 1)){
 				let direction2 = playingBottomSide? -2 : 2
 				if((board[location[1] + direction2][location[0]] & TILE_TYPE.PIECES) === 0){
-					yield [location[0], location[1] + direction2]
+					yield [location[0], location[1] + direction2, TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE]
 				}
 			}		
 		}
+
+		/** TODO: check is a en passant is possible, difficulty is that the removed piece is not the same as the attacked one */
+		
+		if((playingBottomSide && 8-location[1] === 5) || (!playingBottomSide && location[1] === 4)){
+			if((board[location[1]][location[0]+1] & TILE_TYPE.PAWN) > 0){
+				if((board[location[1]][location[0]+1] & TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE) > 0){
+					/** yield with the special flag enpassant, and at fourth index the index of the attacked piece */
+					yield [location[0]+1, location[1]+direction, TILE_TYPE.EN_PASSANT, [location[0]+1,location[1]]]
+				}
+				if((board[location[1]][location[0]-1] & TILE_TYPE.PAWN) > 0){
+					if((board[location[1]][location[0]-1] & TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE) > 0){
+						yield [location[0]-1, location[1]+direction, TILE_TYPE.EN_PASSANT, [location[0]-1,location[1]]]
+					}
+				}
+			}
+		}	
+
+
 		/**now check for possible attack moves */
 		let enemyPlayer = playerWhite? TILE_TYPE.PLAYER_BLACK : TILE_TYPE.PLAYER_WHITE
 		/** left attack */
 		if(location[0] > 0){
 			if((board[location[1]+direction][location[0]-1] & enemyPlayer) > 0){
-				yield [location[0]-1, location[1] + direction]
+				let coord = [location[0]-1, location[1] + direction]
+
+				/** Promote to queen */
+				if(coord[1] === 0 || coord[1] === 7){
+					coord.push(TILE_TYPE.QUEEN-TILE_TYPE.PAWN)
+				}
+
+				yield coord
 			}
 		}
 		/** Right attack */
-		if(location[0] < this.settings.size){
+		if(location[0] < 8){
 			if((board[location[1]+direction][location[0]+1] & enemyPlayer) > 0){
-				yield [location[0]+1, location[1] + direction]
+
+				let coord = [location[0]+1, location[1] + direction]
+
+				/** Promote to queen */
+				if(coord[1] === 0 || coord[1] === 7){
+					coord.push(TILE_TYPE.QUEEN-TILE_TYPE.PAWN)
+				}
+
+				yield coord
 			}
 		}
 

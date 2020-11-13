@@ -4,7 +4,7 @@ import styles from './board.module.scss'
 import KeyboardEventHandler from 'react-keyboard-event-handler';
 import {Row, Container} from 'react-bootstrap'
 import TILE_TYPE from '../../game/tileType';
-import ChessGame, { coordToChessName } from '../../game';
+import ChessGame, { coordToChessName, chessNameToCoord } from '../../game';
 
 // import { SnakeGame } from '../../game/game';
 
@@ -86,10 +86,42 @@ class Board extends Component {
 		self.game.move({from:e.from,to:e.to})
 	}
 
+	highlightedTiles = []
+	requestHighlight(self,e){
+		let tiles = self.state.tiles
+		let tilesToUpdate = self.game.getPossibleMoves({board: self.game.board, piece: e.piece, location: chessNameToCoord(e.location)})
+		for(let tile of tilesToUpdate){
+			let x = tile[0]
+			let y = tile[1]
+			let row = [].concat(tiles[y])
+			
+			let content = self.game.board[y][x] | TILE_TYPE.HIGHLIGHT
+			row[x] = self._generateTile(x,y,content)
+			tiles[y] = row
+		}
+		this.highlightedTiles = tilesToUpdate
+		self.setState({tiles:tiles})
+	}
+	stopHighlight(self){
+		let tiles = self.state.tiles
+		for(let tile of self.highlightedTiles){
+			let x = tile[0]
+			let y = tile[1]
+			let row = [].concat(tiles[y])
+			
+			let content = self.game.board[y][x] & ~TILE_TYPE.HIGHLIGHT
+			row[x] = self._generateTile(x,y,content)
+			tiles[y] = row
+		}
+		this.highlightedTiles = []
+		self.setState({tiles:tiles})
+	}
 	//#region private methods
 	_generateTile(x,y,content){
 		let location = coordToChessName(x,y)
-		return <Tile key={x+'-'+y} height={this.tileSize} width={this.tileSize} content={content} location={location} onMove={(e)=>this.onMoveAttempt(this,e)}></Tile>
+		return <Tile key={x+'-'+y} height={this.tileSize} width={this.tileSize} content={content} location={location} onMove={(e)=>this.onMoveAttempt(this,e)} onRequestHighlight={(e)=>this.requestHighlight(this,e)} onStopHighlight={()=>{this.stopHighlight(this)}}>
+
+		</Tile>
 	}
 	_generateVisualBoard(){
 		let visualBoard = []
