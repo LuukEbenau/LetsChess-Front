@@ -38,68 +38,71 @@ export class ChessGame{
 			console.debug(`This move from ${from} to ${to} is not possible!`)
 		}
 		else{
-			let updatedTiles = []
-			let enemyPiece = this.board[toCoord[1]][toCoord[0]] & TILE_TYPE.PIECE_PLAYER
+			let updatedTiles = [fromCoord, toCoord]
 			/** remove piece piece from tile */
+			let enemyPiece = this.board[toCoord[1]][toCoord[0]] & TILE_TYPE.PIECE_PLAYER
 			this.board[fromCoord[1]][fromCoord[0]] &= ~TILE_TYPE.PIECE_PLAYER
-			
-			this.board[toCoord[1]][toCoord[0]] &= ~TILE_TYPE.PIECE_PLAYER
-
-			/** At the third index potential special state can be stored, like queen promote or en passant, so add this to the piece */
+			this.board[  toCoord[1]][toCoord[0]]   &= ~TILE_TYPE.PIECE_PLAYER
 			fromPiece &= ~TILE_TYPE.HAS_NOT_MOVED
-			if(movesFromPossible[0].length>2){
-				//TODO: remove en passant after turn is over
-				let specialData = movesFromPossible[0][2]
-				if(specialData === TILE_TYPE.ROCKADE){
-					console.log('lets do rockade!')
 
-					let kingX, castleX
-					if(toCoord[0]>fromCoord){ //right
-						castleX = fromCoord[0]+1
-						kingX= fromCoord[0]+2
-					}
-					else{
-						//left
-						castleX = fromCoord[0]-1
-						kingX= fromCoord[0]-2
-					}
-					
-					this.board[toCoord[1]][castleX] |= enemyPiece &~ TILE_TYPE.HAS_NOT_MOVED
-					this.board[toCoord[1]][kingX] |= fromPiece
-					updatedTiles.push([castleX,toCoord[1]])
-					updatedTiles.push([kingX,toCoord[1]])
-					
-					//remove the castle from previous position
-					this.board[toCoord[1]][toCoord[0]] &= ~TILE_TYPE.PIECE_PLAYER
-				}
-				else if(specialData === TILE_TYPE.EN_PASSANT){
-					this.board[toCoord[1]][toCoord[0]] |= fromPiece
-
-					let attackedPiece = movesFromPossible[0][3]
-
-					this.board[attackedPiece[1]][attackedPiece[0]] &= ~TILE_TYPE.PIECE_PLAYER
-					updatedTiles.push(attackedPiece)
-				}
-				else if(specialData === TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE){
-					this.enPassantPawn = toCoord
-					this.board[toCoord[1]][toCoord[0]] |= fromPiece|TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE
-				}
-				else if(specialData === TILE_TYPE.PROMOTE){
-					/** e.g. queen promote */
-					fromPiece &= ~TILE_TYPE.PAWN
-					fromPiece |= TILE_TYPE.QUEEN
-					this.board[toCoord[1]][toCoord[0]] |= fromPiece
-				}
+			/** At the third index potential special state can be stored, like queen promote or en passant, so do this custom logic */
+			if(movesFromPossible[0].length > 2){
+				updatedTiles.push(...this._handleSpecialMoves(this.board, fromCoord, movesFromPossible[0], fromPiece, enemyPiece))
 			}
 			else{
 				this.board[toCoord[1]][toCoord[0]] |= fromPiece
+				updatedTiles.push(fromCoord, toCoord)
 			}
 
-			updatedTiles.push(fromCoord,toCoord)
 			this.onBoardUpdated.trigger({updatedTiles})
 		}
 
 		this.onMoveTaken.trigger({from:from, to:to})
+	}
+
+	*_handleSpecialMoves(board, fromCoord, toCoord, fromPiece, enemyPiece){
+		let specialData = toCoord[2]
+		
+		if(specialData === TILE_TYPE.ROCKADE){
+			console.log('lets do rockade!')
+
+			let kingX, castleX
+			if(toCoord[0] > fromCoord[0]){ //right
+				castleX = fromCoord[0] + 1
+				kingX = fromCoord[0] + 2
+			}
+			else{ //left
+				castleX = fromCoord[0] - 1
+				kingX = fromCoord[0] - 2
+			}
+			
+			board[toCoord[1]][castleX] |= enemyPiece & ~TILE_TYPE.HAS_NOT_MOVED
+			board[toCoord[1]]  [kingX] |= fromPiece
+			yield [castleX, toCoord[1]]
+			yield [kingX, toCoord[1]]
+			
+			//remove the castle from previous position
+			board[toCoord[1]][toCoord[0]] &= ~TILE_TYPE.PIECE_PLAYER
+		}
+		else if(specialData === TILE_TYPE.EN_PASSANT){
+			//TODO: remove en passant status after turn is over, because it is only possible directly after the move
+			board[toCoord[1]][toCoord[0]] |= fromPiece
+			let attackedPiece = toCoord[3]
+
+			board[attackedPiece[1]][attackedPiece[0]] &= ~TILE_TYPE.PIECE_PLAYER
+			yield attackedPiece
+		}
+		else if(specialData === TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE){
+			this.enPassantPawn = toCoord
+			board[toCoord[1]][toCoord[0]] |= fromPiece | TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE
+		}
+		else if(specialData === TILE_TYPE.PROMOTE){
+			/** e.g. queen promote */
+			fromPiece &= ~TILE_TYPE.PAWN
+			fromPiece |= TILE_TYPE.QUEEN
+			board[toCoord[1]][toCoord[0]] |= fromPiece
+		}
+		this.board = board
 	}
 
 	//#region private methods
