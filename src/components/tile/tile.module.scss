@@ -1,3 +1,4 @@
+@import './tile_themes.scss';
 .tile{
 	display: inline-block;
 	position: relative;
@@ -9,10 +10,10 @@
 	border: 1px solid rgb(211, 211, 211);
 }
 .blackTile{
-	background-color: rgb(55, 185, 66);
+	background-color: $ob_dark;
 }
 .whiteTile{
-	background-color: white;
+	background-color: $ob_light;
 }
 
 .verticalCenter {

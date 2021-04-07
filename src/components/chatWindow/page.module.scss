@@ -1,0 +1,31 @@
+@import "../../style/_variables";
+.chatInput{
+	// background-color: $gray-700;
+}
+.chatButton{
+	background-color: $gray-800;
+}
+.chat{
+	width: 100%;
+	margin-top: 15px;
+	border-radius: 5px;
+	background-color: $gray-900;
+}
+.chat-window{
+
+
+}
+.messageText{
+	
+}
+.messageUsername{
+	font-weight: bold;
+	color: black;
+}
+.messages{
+	color:rgba(185, 185, 185, 0.822);
+	text-align: left;
+}
+.typebox{
+
+}

@@ -1,11 +1,14 @@
 import React from 'react';
 import './App.scss';
-import Board from './components/board'
+
+import Navigation from './components/navigation'
+import MatchPage from './components/matchPage'
 function App() {
   return (
     <div className="App">
-      <div>
-        <Board cols={8} rows={8}></Board>
+      <Navigation/>
+      <div style={{marginLeft:'160px'}}>    
+        <MatchPage></MatchPage>
       </div>
     </div>
   );
