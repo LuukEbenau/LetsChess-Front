@@ -1,3 +1,27 @@
+@import "../../style/_variables";
+.logoWrap{
+  background-color: $gray-800;
+  border-radius: 0 0 3px 3px;
+  border: 1px solid $gray-900;
+}
+.menuItem{
+  border-radius: 3px;
+  background-color: $gray-700;
+  border: 1px solid $gray-900;
+}
+.logo{
+  width:100%;
+}
+
+.loginButton{
+  width:100%;
+  color: $gray-900;
+  font-size: large;
+  background-color: pink;
+  border-color: purple;
+  border-radius: 5px;
+}
+
 .sidenav {
   height: 100%;
   width: 160px;
@@ -7,7 +31,7 @@
   left: 0;
   background-color: #111;
   overflow-x: hidden;
-  padding-top: 20px;
+  // padding-top: 20px;
 }
 
 .sidenav a {

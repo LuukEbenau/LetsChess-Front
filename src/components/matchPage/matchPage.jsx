@@ -13,12 +13,11 @@ class Page extends Component {
 		return ( 
       <div className="container-fluid">
 				<div className="row">
-					<div className="col-9 ">
+					<div className="col-9">
 						<div className="card">
 							<div className="card-body">
 								<Board cols={8} rows={8}></Board>
-							</div>
-						
+							</div>	
 						</div>
 					
 					</div>
