@@ -41,8 +41,8 @@ export class ChessGame{
 			let updatedTiles = [fromCoord, toCoord]
 			/** remove piece piece from tile */
 			let enemyPiece = this.board[toCoord[1]][toCoord[0]] & TILE_TYPE.PIECE_PLAYER
-			this.board[fromCoord[1]][fromCoord[0]] &= ~TILE_TYPE.PIECE_PLAYER
-			this.board[  toCoord[1]][toCoord[0]]   &= ~TILE_TYPE.PIECE_PLAYER
+			this.board[fromCoord[1]][fromCoord[0]] &= ~(TILE_TYPE.PIECE_PLAYER|TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE)
+			this.board[  toCoord[1]][toCoord[0]]   &= ~(TILE_TYPE.PIECE_PLAYER|TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE)
 			fromPiece &= ~TILE_TYPE.HAS_NOT_MOVED
 
 			/** At the third index potential special state can be stored, like queen promote or en passant, so do this custom logic */
@@ -499,19 +499,27 @@ export class ChessGame{
 		}
 
 		/** TODO: en passant code */
-		if((playingBottomSide && 8-location[1] === 5) || (!playingBottomSide && location[1] === 4)){
-			if((board[location[1]][location[0]+1] & TILE_TYPE.PAWN) > 0){
-				if((board[location[1]][location[0]+1] & TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE) > 0){
-					/** yield with the special flag enpassant, and at fourth index the index of the attacked piece */
-					yield [location[0]+1, location[1]+direction, TILE_TYPE.EN_PASSANT, [location[0]+1,location[1]]]
-				}
-				if((board[location[1]][location[0]-1] & TILE_TYPE.PAWN) > 0){
-					if((board[location[1]][location[0]-1] & TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE) > 0){
-						yield [location[0]-1, location[1]+direction, TILE_TYPE.EN_PASSANT, [location[0]-1,location[1]]]
-					}
-				}
-			}
-		}	
+		if((board[location[1]][location[0] + 1] & TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE) > 0){
+			yield [location[0] + 1, location[1]+direction, TILE_TYPE.EN_PASSANT, [location[0]+1,location[1]]]
+		}
+		if((board[location[1]][location[0]-1] & TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE) > 0){
+			yield [location[0] - 1, location[1] + direction, TILE_TYPE.EN_PASSANT, [location[0]-1,location[1]]]
+		}
+
+
+		// if((playingBottomSide && 8-location[1] === 5) || (!playingBottomSide && location[1] === 4)){
+		// 	if((board[location[1]][location[0]+1] & TILE_TYPE.PAWN) > 0){
+		// 		if((board[location[1]][location[0]+1] & TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE) > 0){
+		// 			/** yield with the special flag enpassant, and at fourth index the index of the attacked piece */
+					
+		// 		}
+		// 		if((board[location[1]][location[0]-1] & TILE_TYPE.PAWN) > 0){
+		// 			if((board[location[1]][location[0]-1] & TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE) > 0){
+						
+		// 			}
+		// 		}
+		// 	}
+		// }	
 
 		/**now check for possible attack moves */
 		let enemyPlayer = playerWhite? TILE_TYPE.PLAYER_BLACK : TILE_TYPE.PLAYER_WHITE
