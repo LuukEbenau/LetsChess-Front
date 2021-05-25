@@ -8,7 +8,9 @@ class Page extends Component {
 	constructor(props) {
 		super(props)
 	}
-
+	componentDidMount(){
+		console.log("matchid is: "+ this.props.matchId)
+	}
 	render() { 
 		return ( 
       <div className="container-fluid">

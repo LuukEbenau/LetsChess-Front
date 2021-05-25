@@ -42,7 +42,7 @@ export class ChessGame{
 			/** remove piece piece from tile */
 			let enemyPiece = this.board[toCoord[1]][toCoord[0]] & TILE_TYPE.PIECE_PLAYER
 			this.board[fromCoord[1]][fromCoord[0]] &= ~(TILE_TYPE.PIECE_PLAYER|TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE)
-			this.board[  toCoord[1]][toCoord[0]]   &= ~(TILE_TYPE.PIECE_PLAYER|TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE)
+			this.board[toCoord[1]][toCoord[0]]     &= ~(TILE_TYPE.PIECE_PLAYER|TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE)
 			fromPiece &= ~TILE_TYPE.HAS_NOT_MOVED
 
 			/** At the third index potential special state can be stored, like queen promote or en passant, so do this custom logic */
@@ -64,8 +64,6 @@ export class ChessGame{
 		let specialData = toCoord[2]
 		
 		if(specialData === TILE_TYPE.ROCKADE){
-			console.log('lets do rockade!')
-
 			let kingX, castleX
 			if(toCoord[0] > fromCoord[0]){ //right
 				castleX = fromCoord[0] + 1
@@ -191,10 +189,7 @@ export class ChessGame{
 			moves.push(...this._getPossibleQueenMoves({board, piece,location}))
 		}
 		else if((piece & TILE_TYPE.KING)){
-			// let enemyMoves = this._calculateAllPossibleMovesForPlayer(TILE_TYPE.PLAYERS & ~piece)
 			 moves.push(...this._getPossibleKingMoves({board, piece, location}))
-
-			// moves = moves.filter(m => !enemyMoves.includes(m))
 		}
 		return moves
 	}
@@ -248,9 +243,176 @@ export class ChessGame{
 				
 			}
 		}
-
 	}
+	*_getPossibleCastleMoves({board, piece, location}){
+		let dirs = [
+			[0,1],
+			[0,-1],
+			[1,0],
+			[-1,0]
+		]
 
+		for(let dir of dirs){
+			let current = location
+			do{
+				let next = [current[0]+dir[0],current[1]+dir[1]]
+				if(this._coordInsideBoard(next)){
+					if((board[next[1]][next[0]] & TILE_TYPE.PIECE_PLAYER) === 0){
+						yield next
+					}
+					else if((board[next[1]][next[0]] & ( TILE_TYPE.PLAYERS)) > 0){
+						if((board[next[1]][next[0]] & (~piece & TILE_TYPE.PLAYERS)) > 0){
+							yield next
+						}
+						break
+					}
+				}
+				else break
+				current = next
+			}	while(true)
+		}
+	}
+	*_getPossibleBishopMoves({board, piece, location}){
+		let dirs = [
+			[1,1],
+			[1,-1],
+			[-1,1],
+			[-1,-1]
+		]
+
+		for(let dir of dirs){
+			let current = location
+			do{
+				let next = [current[0]+dir[0],current[1]+dir[1]]
+				if(this._coordInsideBoard(next)){
+					if((board[next[1]][next[0]] & TILE_TYPE.PIECE_PLAYER) === 0){
+						yield next
+					}
+					else if((board[next[1]][next[0]] & ( TILE_TYPE.PLAYERS)) > 0){
+						if((board[next[1]][next[0]] & (~piece & TILE_TYPE.PLAYERS)) > 0){
+							yield next
+						}
+						break
+					}
+				}
+				else break
+				current = next
+			}	while(true)
+		}
+	}
+	*_getPossibleQueenMoves({board, piece, location}){
+		let dirs = [
+			[1,1],
+			[1,-1],
+			[-1,1],
+			[-1,-1],
+			[0,1],
+			[0,-1],
+			[1,0],
+			[-1,0]
+		]
+
+		for(let dir of dirs){
+			let current = location
+			do{
+				let next = [current[0]+dir[0],current[1]+dir[1]]
+				if(this._coordInsideBoard(next)){
+					if((board[next[1]][next[0]] & TILE_TYPE.PIECE_PLAYER) === 0){
+						yield next
+					}
+					else if((board[next[1]][next[0]] & ( TILE_TYPE.PLAYERS)) > 0){
+						if((board[next[1]][next[0]] & (~piece & TILE_TYPE.PLAYERS)) > 0){
+							yield next
+						}
+						break
+					}
+				}
+				else break
+				current = next
+			}	while(true)
+		}
+	}
+	*_getPossibleRookMoves({board, piece, location}){
+		let moveDeltas = [
+			[2,1],
+			[2,-1],
+			[-2,1],
+			[-2,-1],
+			[1,2],
+			[1,-2],
+			[-1,2],
+			[-1,-2]
+		]
+		for(let delta of moveDeltas){
+			let destination = [location[0]+delta[0],location[1]+delta[1]]
+			if(this._coordInsideBoard(destination)){
+				/** check if the piece there is not your own */
+				if((board[destination[1]][destination[0]] & (piece & TILE_TYPE.PLAYERS)) === 0){
+					yield destination
+				}
+			}
+		}
+	}
+	*_getPossiblePawnMoves({board, piece, location}){
+		let playerWhite = (piece & TILE_TYPE.PLAYER_WHITE)>0
+		let playingBottomSide = playerWhite === this.settings.whiteBottom
+		let direction = playingBottomSide? -1 : 1
+
+		/** 1. check if tile in front is free */
+		if((board[location[1] + direction][location[0]] & TILE_TYPE.PIECES) === 0){
+			let coord = [location[0], location[1] + direction]
+			if(coord[1] === 0 || coord[1] === 7){
+				coord.push(TILE_TYPE.PROMOTE)
+			}
+			yield coord
+
+			/** 1.1. now that we know you can walk 1 step, check if at basestation, and if, doublestep is possible to */
+			if((playingBottomSide && 8-location[1] === 2) || (!playingBottomSide && location[1] === 1)){
+				let direction2 = playingBottomSide? -2 : 2
+				if((board[location[1] + direction2][location[0]] & TILE_TYPE.PIECES) === 0){
+					yield [location[0], location[1] + direction2, TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE]
+				}
+			}		
+		}
+
+		/** TODO: en passant code */
+		if((board[location[1]][location[0] + 1] & TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE) > 0){
+			yield [location[0] + 1, location[1]+direction, TILE_TYPE.EN_PASSANT, [location[0]+1,location[1]]]
+		}
+		if((board[location[1]][location[0]-1] & TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE) > 0){
+			yield [location[0] - 1, location[1] + direction, TILE_TYPE.EN_PASSANT, [location[0]-1,location[1]]]
+		}
+
+		/**now check for possible attack moves */
+		let enemyPlayer = playerWhite? TILE_TYPE.PLAYER_BLACK : TILE_TYPE.PLAYER_WHITE
+		/** left attack */
+		if(location[0] > 0){
+			if((board[location[1]+direction][location[0]-1] & enemyPlayer) > 0){
+				let coord = [location[0]-1, location[1] + direction]
+
+				/** Promote to queen */
+				if(coord[1] === 0 || coord[1] === 7){
+					coord.push(TILE_TYPE.PROMOTE)
+				}
+
+				yield coord
+			}
+		}
+		/** Right attack */
+		if(location[0] < 8){
+			if((board[location[1]+direction][location[0]+1] & enemyPlayer) > 0){
+
+				let coord = [location[0]+1, location[1] + direction]
+
+				/** Promote to queen */
+				if(coord[1] === 0 || coord[1] === 7){
+					coord.push(TILE_TYPE.PROMOTE)
+				}
+
+				yield coord
+			}
+		}
+	}
 	_verifyKingIsSafeOnNewLocation({board, piece, oldLocation, newLocation}){
 		board = [ /**clone board */
 			[...board[0]],
@@ -362,196 +524,6 @@ export class ChessGame{
 		}
 
 		return true
-	}
-
-	*_getPossibleCastleMoves({board, piece, location}){
-		let dirs = [
-			[0,1],
-			[0,-1],
-			[1,0],
-			[-1,0]
-		]
-
-		for(let dir of dirs){
-			let current = location
-			do{
-				let next = [current[0]+dir[0],current[1]+dir[1]]
-				if(this._coordInsideBoard(next)){
-					if((board[next[1]][next[0]] & TILE_TYPE.PIECE_PLAYER) === 0){
-						yield next
-					}
-					else if((board[next[1]][next[0]] & ( TILE_TYPE.PLAYERS)) > 0){
-						if((board[next[1]][next[0]] & (~piece & TILE_TYPE.PLAYERS)) > 0){
-							yield next
-						}
-						break
-					}
-				}
-				else break
-				current = next
-			}	while(true)
-		}
-	}
-
-	*_getPossibleBishopMoves({board, piece, location}){
-		let dirs = [
-			[1,1],
-			[1,-1],
-			[-1,1],
-			[-1,-1]
-		]
-
-		for(let dir of dirs){
-			let current = location
-			do{
-				let next = [current[0]+dir[0],current[1]+dir[1]]
-				if(this._coordInsideBoard(next)){
-					if((board[next[1]][next[0]] & TILE_TYPE.PIECE_PLAYER) === 0){
-						yield next
-					}
-					else if((board[next[1]][next[0]] & ( TILE_TYPE.PLAYERS)) > 0){
-						if((board[next[1]][next[0]] & (~piece & TILE_TYPE.PLAYERS)) > 0){
-							yield next
-						}
-						break
-					}
-				}
-				else break
-				current = next
-			}	while(true)
-		}
-	}
-
-	*_getPossibleQueenMoves({board, piece, location}){
-		let dirs = [
-			[1,1],
-			[1,-1],
-			[-1,1],
-			[-1,-1],
-			[0,1],
-			[0,-1],
-			[1,0],
-			[-1,0]
-		]
-
-		for(let dir of dirs){
-			let current = location
-			do{
-				let next = [current[0]+dir[0],current[1]+dir[1]]
-				if(this._coordInsideBoard(next)){
-					if((board[next[1]][next[0]] & TILE_TYPE.PIECE_PLAYER) === 0){
-						yield next
-					}
-					else if((board[next[1]][next[0]] & ( TILE_TYPE.PLAYERS)) > 0){
-						if((board[next[1]][next[0]] & (~piece & TILE_TYPE.PLAYERS)) > 0){
-							yield next
-						}
-						break
-					}
-				}
-				else break
-				current = next
-			}	while(true)
-		}
-	}
-
-	*_getPossibleRookMoves({board, piece, location}){
-		let moveDeltas = [
-			[2,1],
-			[2,-1],
-			[-2,1],
-			[-2,-1],
-			[1,2],
-			[1,-2],
-			[-1,2],
-			[-1,-2]
-		]
-		for(let delta of moveDeltas){
-			let destination = [location[0]+delta[0],location[1]+delta[1]]
-			if(this._coordInsideBoard(destination)){
-				/** check if the piece there is not your own */
-				if((board[destination[1]][destination[0]] & (piece & TILE_TYPE.PLAYERS)) === 0){
-					yield destination
-				}
-			}
-		}
-	}
-	*_getPossiblePawnMoves({board, piece, location}){
-		let playerWhite = (piece & TILE_TYPE.PLAYER_WHITE)>0
-		let playingBottomSide = playerWhite === this.settings.whiteBottom
-		let direction = playingBottomSide? -1 : 1
-
-		/** 1. check if tile in front is free */
-		if((board[location[1] + direction][location[0]] & TILE_TYPE.PIECES) === 0){
-			let coord = [location[0], location[1] + direction]
-			if(coord[1] === 0 || coord[1] === 7){
-				coord.push(TILE_TYPE.PROMOTE)
-			}
-			yield coord
-
-			/** 1.1. now that we know you can walk 1 step, check if at basestation, and if, doublestep is possible to */
-			if((playingBottomSide && 8-location[1] === 2) || (!playingBottomSide && location[1] === 1)){
-				let direction2 = playingBottomSide? -2 : 2
-				if((board[location[1] + direction2][location[0]] & TILE_TYPE.PIECES) === 0){
-					yield [location[0], location[1] + direction2, TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE]
-				}
-			}		
-		}
-
-		/** TODO: en passant code */
-		if((board[location[1]][location[0] + 1] & TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE) > 0){
-			yield [location[0] + 1, location[1]+direction, TILE_TYPE.EN_PASSANT, [location[0]+1,location[1]]]
-		}
-		if((board[location[1]][location[0]-1] & TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE) > 0){
-			yield [location[0] - 1, location[1] + direction, TILE_TYPE.EN_PASSANT, [location[0]-1,location[1]]]
-		}
-
-
-		// if((playingBottomSide && 8-location[1] === 5) || (!playingBottomSide && location[1] === 4)){
-		// 	if((board[location[1]][location[0]+1] & TILE_TYPE.PAWN) > 0){
-		// 		if((board[location[1]][location[0]+1] & TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE) > 0){
-		// 			/** yield with the special flag enpassant, and at fourth index the index of the attacked piece */
-					
-		// 		}
-		// 		if((board[location[1]][location[0]-1] & TILE_TYPE.PAWN) > 0){
-		// 			if((board[location[1]][location[0]-1] & TILE_TYPE.PAWN_EN_PASSANT_VUlNERABLE) > 0){
-						
-		// 			}
-		// 		}
-		// 	}
-		// }	
-
-		/**now check for possible attack moves */
-		let enemyPlayer = playerWhite? TILE_TYPE.PLAYER_BLACK : TILE_TYPE.PLAYER_WHITE
-		/** left attack */
-		if(location[0] > 0){
-			if((board[location[1]+direction][location[0]-1] & enemyPlayer) > 0){
-				let coord = [location[0]-1, location[1] + direction]
-
-				/** Promote to queen */
-				if(coord[1] === 0 || coord[1] === 7){
-					coord.push(TILE_TYPE.PROMOTE)
-				}
-
-				yield coord
-			}
-		}
-		/** Right attack */
-		if(location[0] < 8){
-			if((board[location[1]+direction][location[0]+1] & enemyPlayer) > 0){
-
-				let coord = [location[0]+1, location[1] + direction]
-
-				/** Promote to queen */
-				if(coord[1] === 0 || coord[1] === 7){
-					coord.push(TILE_TYPE.PROMOTE)
-				}
-
-				yield coord
-			}
-		}
-
-		/** TODO: rarely used rule that, if you move 3 steps, and the openent moves 2 instantly so it ends up behind, you may take it */
 	}
 	//#endregion
 	//#endregion

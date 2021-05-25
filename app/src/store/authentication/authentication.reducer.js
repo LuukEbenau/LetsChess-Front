@@ -7,9 +7,10 @@ import {
 } from './authentication.actions'
 const initialState = {
   accessToken: '',
-  isLoggedIn: true,
+  isLoggedIn: false,
   tokenExpire: null,
 
+  userId:null,
   username: null,
   profilePicture: null,
 }
@@ -24,6 +25,8 @@ const reducer = createReducer(initialState, {
   [userinfoRetrieved]: (state,action) => {
     state.username = action.payload.name;
     state.profilePicture = action.payload.picture;
+    console.log('setting userId as',action.payload.externalId,action.payload)
+    state.userId = action.payload.externalId;
   }
 })
 
