@@ -2,6 +2,8 @@ FROM node:latest
 
 ENV APP_ROOT /src
 ENV NODE_ENV production
+Env REACT_APP_API_URL https://api.letschess.nl
+
 
 RUN mkdir ${APP_ROOT}
 WORKDIR ${APP_ROOT}
