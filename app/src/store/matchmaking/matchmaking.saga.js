@@ -26,7 +26,7 @@ function findMatchRequest(request) {
     headers,
   }
 
-  return fetch(`${API_ENDPOINT}/api/matchmaking/findmatch?userId=${request.userId}`, requestOptions)
+  return fetch(`${API_ENDPOINT}/matchmaking/findmatch?userId=${request.userId}`, requestOptions)
     .then(r => {
       console.debug('request completed succesfully',r)
     })

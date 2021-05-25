@@ -21,7 +21,7 @@ class Page extends Component {
 	render() { 
 
 		if(this.state.redirectToAuth){
-			window.location.href = `${API_ENDPOINT}/api/auth/redirectToIdentity?redirectUrl=${window.location.href}auth/redirected`
+			window.location.href = `${API_ENDPOINT}/auth/redirectToIdentity?redirectUrl=${window.location.origin}/auth/redirected`
 		}
 		return ( 		
 				<div className={styles.sidenav}>

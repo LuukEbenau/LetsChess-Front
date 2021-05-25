@@ -27,7 +27,7 @@ function retrieveUserInfoRequest(request) {
     headers,
   }
 
-  return fetch(`${API_ENDPOINT}/api/auth/userinfo`, requestOptions)
+  return fetch(`${API_ENDPOINT}/auth/userinfo`, requestOptions)
     .then(r => {
       return r.json()
     })
