@@ -11,7 +11,7 @@ import ChessGame, { coordToChessName, chessNameToCoord } from '../../game';
 class Board extends Component {
 	constructor(props) {
 		super(props)
-		this.game = new ChessGame()
+		this.game = props.game
 
 		this.state = { 
 			tiles: [],
@@ -89,18 +89,20 @@ class Board extends Component {
 	highlightedTiles = []
 	requestHighlight(self,e){
 		let tiles = self.state.tiles
-		let tilesToUpdate = self.game.getPossibleMoves({board: self.game.board, piece: e.piece, location: chessNameToCoord(e.location)})
-		for(let tile of tilesToUpdate){
-			let x = tile[0]
-			let y = tile[1]
-			let row = [].concat(tiles[y])
-			
-			let content = self.game.board[y][x] | TILE_TYPE.HIGHLIGHT
-			row[x] = self._generateTile(x,y,content)
-			tiles[y] = row
+		if(self.game.settings.playingAs === (e.piece & TILE_TYPE.PLAYERS)){
+			let tilesToUpdate = self.game.getPossibleMoves({board: self.game.board, piece: e.piece, location: chessNameToCoord(e.location)})
+			for(let tile of tilesToUpdate){
+				let x = tile[0]
+				let y = tile[1]
+				let row = [].concat(tiles[y])
+				
+				let content = self.game.board[y][x] | TILE_TYPE.HIGHLIGHT
+				row[x] = self._generateTile(x,y,content)
+				tiles[y] = row
+			}
+			this.highlightedTiles = tilesToUpdate
+			self.setState({tiles:tiles})
 		}
-		this.highlightedTiles = tilesToUpdate
-		self.setState({tiles:tiles})
 	}
 	stopHighlight(self){
 		let tiles = self.state.tiles

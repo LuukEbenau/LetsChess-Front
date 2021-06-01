@@ -3,8 +3,10 @@ import React, { Component } from 'react'
 import {Row, Container} from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { findMatch } from '../../store/matchmaking/matchmaking.actions'
+
 import styles from './page.module.scss'
 import {Redirect} from 'react-router-dom'
+import { gameFound } from '../../store/game/game.actions'
 class Page extends Component {
 	state = {
 		redirect:null
@@ -14,8 +16,9 @@ class Page extends Component {
 	}
 
 	componentDidMount(){
-		this.props.wsClient.onMatchFound = (matchId) => {
-      this.setState({redirect: '/match/' + matchId})
+		this.props.wsClient.onMatchFound = (mess) => {
+			this.props.gameFound(mess)
+      this.setState({redirect: '/match/' + mess.matchId})
     }
 		this.props.findMatch()
 	}
@@ -46,6 +49,7 @@ const mapStateToProps = state => {
 function mapDispatchToProps(dispatch) {
   return {
     findMatch: () => dispatch(findMatch()),
+		gameFound: ({matchId,opponent,playingWhite}) => dispatch(gameFound({matchId,opponent,playingWhite}))
   }
 } 
 const ConnectedPage = connect(

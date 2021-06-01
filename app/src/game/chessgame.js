@@ -7,7 +7,9 @@ export class ChessGame{
 	onBoardUpdated = new EventHandler()
 	settings= {
 		size:8,
-		whiteBottom:false
+		whiteBottom:false,
+		playingAs:null,
+		movesDone:0
 	}
 	enPassantPawn
 	/** List of all pieces of the dark player */
@@ -19,15 +21,40 @@ export class ChessGame{
 		this.board = this._generateBoard()
 	}
 
-	start(){
+	start({playingWhite}){
+		this.settings.playingAs = playingWhite? TILE_TYPE.PLAYER_WHITE: TILE_TYPE.PLAYER_BLACK
+		this.settings.movesDone = 0
+	}
+  /** Syncs a move from the opponent */
+	syncMove({from,to}){
+		return this._move({from,to})
+	}
+	move({from,to}){
+		let fromCoord = chessNameToCoord(from)
+		let fromPiece = this.board[fromCoord[1]][fromCoord[0]] & TILE_TYPE.PIECE_PLAYER
+		let fromPlayerColor = fromPiece & TILE_TYPE.PLAYERS
+
+		if(fromPlayerColor !== this.settings.playingAs){
+			console.warn("you may not move those pieces!")
+			return
+		}
+
+		let evenOrUneven = this.settings.playingAs == TILE_TYPE.PLAYER_WHITE? 0 : 1
+		if(this.settings.movesDone % 2 !== evenOrUneven){
+			console.warn("It's not your turn!")
+			return
+		}
+
+		return this._move({from,to})
 	}
 
-	move({from,to}){
+	_move({from,to}){
 		console.debug("move", from, to)
 		let fromCoord = chessNameToCoord(from)
 		let toCoord = chessNameToCoord(to)
 
 		let fromPiece = this.board[fromCoord[1]][fromCoord[0]] & TILE_TYPE.PIECE_PLAYER
+		let fromPlayerColor = fromPiece & TILE_TYPE.PLAYERS
 
 		let possibleMoves = this.getPossibleMoves({board:this.board, piece:fromPiece, location:fromCoord})
 
@@ -36,6 +63,7 @@ export class ChessGame{
 
 		if(movesFromPossible.length === 0){
 			console.debug(`This move from ${from} to ${to} is not possible!`)
+			return
 		}
 		else{
 			let updatedTiles = [fromCoord, toCoord]
@@ -56,8 +84,9 @@ export class ChessGame{
 
 			this.onBoardUpdated.trigger({updatedTiles})
 		}
-
-		this.onMoveTaken.trigger({from:from, to:to})
+		
+		this.onMoveTaken.trigger({from:from, to:to, player:fromPlayerColor})
+		this.settings.movesDone++
 	}
 
 	*_handleSpecialMoves(board, fromCoord, toCoord, fromPiece, enemyPiece){
@@ -172,24 +201,25 @@ export class ChessGame{
 
 	//#region calculatePossibleMoves
 	getPossibleMoves({board, piece, location}){
+		let playingAs = this.settings.playingAs
 		let moves = []
 		if((piece & TILE_TYPE.PAWN) > 0){
-			moves.push(...this._getPossiblePawnMoves({board, piece, location}))
+			moves.push(...this._getPossiblePawnMoves({board, piece, location, playingAs}))
 		}
 		else if((piece & TILE_TYPE.ROOK)){
-			moves.push(...this._getPossibleRookMoves({board, piece,location}))
+			moves.push(...this._getPossibleRookMoves({board, piece,location, playingAs}))
 		}
 		else if((piece & TILE_TYPE.CASTLE)){
-			moves.push(...this._getPossibleCastleMoves({board, piece,location}))
+			moves.push(...this._getPossibleCastleMoves({board, piece,location, playingAs}))
 		}
 		else if((piece & TILE_TYPE.BISHOP)){
-			moves.push(...this._getPossibleBishopMoves({board, piece,location}))
+			moves.push(...this._getPossibleBishopMoves({board, piece,location, playingAs}))
 		}
 		else if((piece & TILE_TYPE.QUEEN)){
-			moves.push(...this._getPossibleQueenMoves({board, piece,location}))
+			moves.push(...this._getPossibleQueenMoves({board, piece,location, playingAs}))
 		}
 		else if((piece & TILE_TYPE.KING)){
-			 moves.push(...this._getPossibleKingMoves({board, piece, location}))
+			 moves.push(...this._getPossibleKingMoves({board, piece, location, playingAs}))
 		}
 		return moves
 	}

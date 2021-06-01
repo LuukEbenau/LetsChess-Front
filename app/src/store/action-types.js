@@ -4,8 +4,11 @@ export const AUTH = {
   USERINFO_RETRIEVED: 'auth/userinfo/retrieved'
 }
 export const GAME = {
-  START_WS_CONNECTION: 'game/ws/start'
+  START_WS_CONNECTION: 'game/ws/start',
+  TAKE_MOVE: 'game/move/take',
+  GAME_FOUND: 'game/found'
 }
 export const MATCHMAKING = {
-  FIND_MATCH: 'match/find'
+  FIND_MATCH: 'match/find',
+
 }

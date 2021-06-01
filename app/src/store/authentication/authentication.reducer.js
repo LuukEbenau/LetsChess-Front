@@ -19,14 +19,16 @@ const reducer = createReducer(initialState, {
   [loginSuccess]: (state, action) => {
     console.log(action.payload.access_token)
     state.accessToken = action.payload.access_token
-    state.isLoggedIn = true
+    state.isLoggingIn = true
     state.tokenExpire = Date.now() + action.payload.expires_in
   },
   [userinfoRetrieved]: (state,action) => {
     state.username = action.payload.name;
     state.profilePicture = action.payload.picture;
     console.log('setting userId as',action.payload.externalId,action.payload)
-    state.userId = action.payload.externalId;
+    state.userId = action.payload.externalId
+    state.isLoggingIn = false
+    state.isLoggedIn = true
   }
 })
 
