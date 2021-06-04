@@ -1,8 +1,7 @@
 import React, { Component } from 'react'
 
-import {Row, Container} from 'react-bootstrap'
 import styles from './navigation.module.scss'
-import {Link, Redirect} from 'react-router-dom'
+import {Link} from 'react-router-dom'
 import logo from '../../images/logo-letschess.png'
 import { connect } from 'react-redux'
 import {API_ENDPOINT} from '../../applicationSettings'
@@ -11,15 +10,8 @@ class Page extends Component {
 	state = {
 		redirectToAuth: false
 	}
-	constructor(props) {
-		super(props)
-	}
 
-  componentDidMount(){
-
-  }
 	render() { 
-
 		if(this.state.redirectToAuth){
 			window.location.href = `${API_ENDPOINT}/auth/redirectToIdentity?redirectUrl=${window.location.origin}/auth/redirected`
 		}

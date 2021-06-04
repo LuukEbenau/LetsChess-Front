@@ -1,6 +1,6 @@
 import {TILE_TYPE} from './tileType'
 import { EventHandler } from './eventHandler'
-import { chessNameToCoord, coordToChessName } from './chessHelper'
+import { chessNameToCoord } from './chessHelper'
 export class ChessGame{
 	board = []
 	onMoveTaken = new EventHandler()
@@ -39,7 +39,7 @@ export class ChessGame{
 			return
 		}
 
-		let evenOrUneven = this.settings.playingAs == TILE_TYPE.PLAYER_WHITE? 0 : 1
+		let evenOrUneven = this.settings.playingAs === TILE_TYPE.PLAYER_WHITE? 0 : 1
 		if(this.settings.movesDone % 2 !== evenOrUneven){
 			console.warn("It's not your turn!")
 			return

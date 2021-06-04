@@ -1,4 +1,4 @@
-import { gameFound, takeMove } from "./game.actions"
+import {  takeMove } from "./game.actions"
 
 export function gameMiddleware({ dispatch, getState }) {
   return function (next) {

@@ -4,9 +4,7 @@ import styles from './board.module.scss'
 import KeyboardEventHandler from 'react-keyboard-event-handler';
 import {Row, Container} from 'react-bootstrap'
 import TILE_TYPE from '../../game/tileType';
-import ChessGame, { coordToChessName, chessNameToCoord } from '../../game';
-
-// import { SnakeGame } from '../../game/game';
+import  { coordToChessName, chessNameToCoord } from '../../game';
 
 class Board extends Component {
 	constructor(props) {

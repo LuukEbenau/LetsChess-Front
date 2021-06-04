@@ -1,4 +1,4 @@
-import { takeEvery, call, put } from 'redux-saga/effects'
+import { takeEvery, call } from 'redux-saga/effects'
 import { takeMove } from './game.actions'
 
 import { API_ENDPOINT } from '../../applicationSettings'

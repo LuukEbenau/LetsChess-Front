@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Redirect, Route } from "react-router-dom";
+import { BrowserRouter as Router, Route } from "react-router-dom";
 import HttpsRedirect from 'react-https-redirect';
 import { connect } from 'react-redux';
 import { Component } from 'react';
@@ -14,9 +14,6 @@ import WaitingForMatchPage from './components/waitingForMatch'
 
 class Page extends Component {
   state = {redirect: null}
-	constructor(props) {
-		super(props)
-	}
 	render() { 
 		return ( 		
       <HttpsRedirect>

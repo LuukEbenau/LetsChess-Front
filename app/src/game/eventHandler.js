@@ -4,7 +4,7 @@ export class EventHandler{
 		this.listeners.push({handler,sender})
 	}
 	unsubscribe(handler){
-		let index = this.listeners.indexOf(this.listeners.filter(f=>f.handler == handler))
+		let index = this.listeners.indexOf(this.listeners.filter(f=>f.handler === handler))
 		if(index !== -1){
 			this.listeners.splice(index,1)
 		}

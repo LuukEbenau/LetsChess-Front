@@ -4,8 +4,7 @@ import {API_ENDPOINT} from '../applicationSettings'
 export class MatchWSClient{
 	connection = null
 	userId = null
-	constructor(){
-	}
+
 	onMatchFound = ({matchId,userId,opponent, playingWhite})=>{}
 	onMoveTaken = ({matchId, userId, from, to}) => {}
 
