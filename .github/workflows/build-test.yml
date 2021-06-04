@@ -25,7 +25,7 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
-    - run: yarn ci
+    - run: yarn
       working-directory: ./app
     - run: yarn build --if-present
       working-directory: ./app
