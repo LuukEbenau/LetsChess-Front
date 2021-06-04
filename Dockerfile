@@ -1,4 +1,4 @@
-FROM node:latest
+git FROM node:latest
 
 ENV APP_ROOT /src
 ENV NODE_ENV production
