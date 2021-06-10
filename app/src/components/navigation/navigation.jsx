@@ -29,9 +29,7 @@ class Page extends Component {
  
 const mapStateToProps = state => {
   return {
-    isLoggedIn: state.auth.isLoggedIn,
-		accessToken: state.auth.accessToken,
-		wsClient: state.game.wsClient
+    isLoggedIn: state.auth.isLoggedIn
   }
 }
 

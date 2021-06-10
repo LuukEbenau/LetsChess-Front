@@ -6,6 +6,7 @@
     "@microsoft/signalr": "^5.0.6",
     "@reduxjs/toolkit": "^1.5.1",
     "bootstrap": "^4.6.0",
+    "jwt-decode": "^3.1.2",
     "react": "^17.0.1",
     "react-bootstrap": "^1.5.2",
     "react-dom": "^17.0.1",
@@ -32,9 +33,7 @@
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
-    "extends": [
-
-    ]
+    "extends": []
   },
   "browserslist": {
     "production": [

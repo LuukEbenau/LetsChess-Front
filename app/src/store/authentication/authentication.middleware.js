@@ -1,7 +1,9 @@
 import {
-  loginSuccess, retrieveUserinfo, userinfoRetrieved
+  loginSuccess
 } from './authentication.actions'
 import {startWsConnection} from '../game/game.actions'
+
+import jwt_decode from "jwt-decode"
 
 export function authMiddleware({ dispatch, getState }) {
   return function (next) {
@@ -9,13 +11,12 @@ export function authMiddleware({ dispatch, getState }) {
       console.debug(action.type)
 
       if(action.type === loginSuccess.type){
-        dispatch(retrieveUserinfo(action.payload.access_token))
-      }
-      if(action.type === userinfoRetrieved.type){
-        action.payload = JSON.parse(action.payload)
-        const {externalId} = action.payload
-       console.log(externalId)
-        dispatch(startWsConnection(externalId))
+        var decoded = jwt_decode(action.payload.idToken)
+        action.payload = {
+          ...action.payload,
+          userInfo: decoded
+        }
+        dispatch(startWsConnection(decoded.sub))
       }
       return next(action)
     }

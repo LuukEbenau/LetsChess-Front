@@ -41,8 +41,8 @@ class Page extends Component {
  
 const mapStateToProps = state => {
   return {
-    username: state.auth.username,
-		profilePicture: state.auth.profilePicture
+    username: state.auth.userInfo.name,
+		profilePicture: state.auth.userInfo.picture
   }
 }
 

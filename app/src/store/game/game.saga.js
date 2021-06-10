@@ -18,7 +18,7 @@ function* takeMoveWorkerSaga(action) {
 
 async function takeMoveRequest(request) {
   var headers = new Headers()
-  headers.append('Authorization', 'Bearer ' + request.accessToken)
+  headers.append('Authorization', 'Bearer ' + request.idToken)
   headers.append("Accept", 'application/json')
   headers.append("Content-Type", 'application/json')
   

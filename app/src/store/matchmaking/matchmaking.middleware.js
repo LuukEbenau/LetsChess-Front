@@ -6,8 +6,8 @@ export function matchmakingMiddleware({ dispatch, getState }) {
   return function (next) {
     return function (action) {
       if(action.type === findMatch.type){
-        action.payload.userId = getState().auth.userId
-        action.payload.accessToken = getState().auth.accessToken
+        action.payload.userId = getState().auth.userInfo.sub
+        action.payload.idToken = getState().auth.idToken
         console.log(action.payload)
       }
       

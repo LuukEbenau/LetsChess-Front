@@ -19,7 +19,7 @@ function* userinfoWorkerSaga(action) {
 
 function retrieveUserInfoRequest(request) {
   var headers = new Headers()
-  headers.append('Authorization', 'Bearer ' + request.accessToken)
+  headers.append('Authorization', 'Bearer ' + request.idToken)
 
   var requestOptions = {
     method: 'GET',

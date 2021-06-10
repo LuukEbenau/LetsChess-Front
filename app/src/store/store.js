@@ -3,7 +3,7 @@ import { authMiddleware } from './authentication/authentication.middleware'
 import createSagaMiddleware from 'redux-saga'
 
 import authReducer from './authentication/authentication.reducer'
-import authSaga from './authentication/authentication.saga'
+//import authSaga from './authentication/authentication.saga'
 
 import gameReducer from './game/game.reducer'
 import gameSaga from './game/game.saga'
@@ -33,7 +33,7 @@ const store = createStore(
   )
 )
 
-initialiseSagaMiddleware.run(authSaga)
+//initialiseSagaMiddleware.run(authSaga)
 initialiseSagaMiddleware.run(matchmakingSaga)
 initialiseSagaMiddleware.run(gameSaga)
 

@@ -18,7 +18,7 @@ function* findMatchWorkerSage(action) {
 
 function findMatchRequest(request) {
   var headers = new Headers()
-  headers.append('Authorization', 'Bearer ' + request.accessToken)
+  headers.append('Authorization', 'Bearer ' + request.idToken)
 
   var requestOptions = {
     method: 'POST',
@@ -32,7 +32,7 @@ function findMatchRequest(request) {
     })
     .catch(error =>
       console.error(
-        'An error occured while contacting the userinfo endpoint',
+        'An error occured while contacting the findmatch endpoint',
         error
       )
     )

@@ -6,30 +6,33 @@ import {
   userinfoRetrieved,
 } from './authentication.actions'
 const initialState = {
-  accessToken: '',
+  idToken: '',
   isLoggedIn: false,
   tokenExpire: null,
 
-  userId:null,
-  username: null,
-  profilePicture: null,
+  userInfo: {
+    family_name: null,
+    given_name: null,
+    locale: null,
+    name: null,
+    nonce: null,
+    picture: null,
+    sub: null
+  }
 }
 
 const reducer = createReducer(initialState, {
   [loginSuccess]: (state, action) => {
-    console.log(action.payload.access_token)
-    state.accessToken = action.payload.access_token
-    state.isLoggingIn = true
-    state.tokenExpire = Date.now() + action.payload.expires_in
-  },
-  [userinfoRetrieved]: (state,action) => {
-    state.username = action.payload.name;
-    state.profilePicture = action.payload.picture;
-    console.log('setting userId as',action.payload.externalId,action.payload)
-    state.userId = action.payload.externalId
-    state.isLoggingIn = false
+    const {idToken, userInfo, expiresIn} = action.payload
+
+    state.idToken = idToken
+    state.tokenExpire = Date.now() + expiresIn
+
+    state.userInfo = userInfo
+
     state.isLoggedIn = true
-  }
+    
+  },
 })
 
 export default reducer
